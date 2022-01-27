@@ -60,13 +60,17 @@ def main():
             json.dump(data, f, indent=4, sort_keys=True)
     if args.plot:
         x = []
-        y = []
-        for i in range(0, 11):
-            x.append(str(i))
-            y.append(0)
+        y = {}
         for key, value in data.items():
-            print(key)
-            y[int(key)] = len(value)
+            if type(value) == list:
+                y[int(key)] = len(value)
+            else:
+                if int(value) not in y:
+                    y[int(value)] = 0
+                    
+                y[int(value)]+=1
+        for key,value in y.items():
+            x.append(key)
         fig = px.bar(x=x, y=y)
         fig.show()
 
