@@ -1,0 +1,36 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "-i", 
+                "files/sesiune.pdf", 
+                "--debug", 
+                "-o", 
+                "files/sesiune.txt", 
+                "--skiplines", 
+                "3",
+                "--sum", 
+                "5", 
+                "7", 
+                "9", 
+                "11", 
+                "13", 
+                "15", 
+                "17", 
+                "19", 
+                "21", 
+                "22", 
+                "23"
+            ]
+        }
+    ]
+}
