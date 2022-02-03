@@ -2,16 +2,23 @@ import json
 import logging
 import argparse
 import plotly.express as px
+import re
 
 logger = logging.getLogger()
+
+def stripname(name):
+    return re.sub(' (.*\.)* ', ' ', name)
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--input", help="Input files", required=True, default=[], type=str, nargs='+')
     parser.add_argument('--debug', action=argparse.BooleanOptionalAction, dest="debug",
                         help='enable debug mode (default: false)')
-    parser.add_argument("-o", "--output", help="Output file", required=True)
+    parser.add_argument("-o", "--output", help="Output file")
     parser.add_argument('--plot', action=argparse.BooleanOptionalAction, dest="plot",
+                        help='enable debug mode (default: false)')
+    parser.add_argument('--format', dest="format", default='json', choices=['json', 'csv'])
+    parser.add_argument('--stripname', action=argparse.BooleanOptionalAction, dest="stripname",
                         help='enable debug mode (default: false)')
     parser.add_argument("--gauss", help="Apply gauss distribution", default=[], type=int, nargs='+')
     parser.add_argument("--minimum", help="Mininum score to pass and to apply gauss distribution", type=int)
@@ -27,19 +34,21 @@ def main():
     for inputfile in args.input:
         with open(inputfile, 'r') as f:
             for key, value in json.load(f).items():
+                if args.stripname:
+                    key = stripname(str(key))
                 if not key in data:
-                    data[key] = float(value)
+                    data[key.upper()] = int(value)
                 else:
-                    data[key] += float(value)
+                    data[key.upper()] += int(value)
     if args.gauss:
         result = {}
         asd = []
         indexes = []
         failed = []
         for key, value in data.items():
-            if not float(value) in result:
-                result[float(value)] = []
-            result[float(value)].append(key)
+            if not int(value) in result:
+                result[int(value)] = []
+            result[int(value)].append(key)
         for index in result:
             indexes.append(index)
         indexes.sort()
@@ -52,12 +61,26 @@ def main():
         for i in range(len(args.gauss)):
             l = len(asd)
             result[i+args.minimum] = asd[l * sum(args.gauss[:i]) // 100:l * sum(args.gauss[:i+1]) // 100]
-        with open(args.output, 'w') as f:
-            json.dump(result, f, indent=4, sort_keys=True)
+        if args.output:
+            if args.format == "json":
+                with open(args.output, 'w') as f:
+                    json.dump(result, f, indent=4, sort_keys=True)
+            if args.format == "csv":
+                with open(args.output, "w") as f:
+                    for nota, value in result.items():
+                        print(nota, value)
+                        for persoana in value:
+                            f.write("{},{}\n".format(persoana, nota))
         data = result
     else:
-        with open(args.output, 'w') as f:
-            json.dump(data, f, indent=4, sort_keys=True)
+        if args.output:
+            if args.format == "json":
+                with open(args.output, 'w') as f:
+                    json.dump(data, f, indent=4, sort_keys=True)
+            if args.format == "csv":
+                with open(args.output, "w") as f:
+                    for key, value in data.items():
+                        f.write("{},{}\n".format(key, value))
     if args.plot:
         x = []
         y = {}

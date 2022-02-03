@@ -51,12 +51,10 @@ def strategy1(args):
                 try:
                     os.makedirs(os.path.dirname(filename))
                 except OSError as exc: # Guard against race condition
-                    if exc.errno != errno.EEXIST:
-                        raise
+                    raise exc
             open(filename, "wb").write(pickle.dumps(tables))
         for table in tables:
             df: pandas.DataFrame = table.df
-            nume = df[args.namecolumn].values[args.skiplines:]
             columnstosum = [args.scorecolumn]
             if args.sum:
                 columnstosum = args.sum
@@ -65,9 +63,11 @@ def strategy1(args):
                 if index < args.skiplines:
                     continue
                 if index == args.skiplines:
-                    logging.debug(row)
+                    logger.debug(row)
                 score = 0
                 for column in columnstosum:
+                    if column < 0:
+                        column = len(df.columns)+args.scorecolumn
                     asd: str = row[column]
                     asd = asd.strip('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ')
                     try:
@@ -94,6 +94,7 @@ def main():
     else:
         logger.setLevel(logging.INFO)
     data = strategy1(args)
+
     with open(args.output, 'w') as outfile:
         json.dump(data, outfile, indent=4, sort_keys=True)
 
