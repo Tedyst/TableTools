@@ -10,28 +10,30 @@ import os
 from tqdm.contrib.logging import tqdm_logging_redirect
 import hashlib
 
+
 def hash_file(filename):
-   """"This function returns the SHA-1 hash
-   of the file passed into it"""
+    """"This function returns the SHA-1 hash
+    of the file passed into it"""
 
-   # make a hash object
-   h = hashlib.sha1()
+    # make a hash object
+    h = hashlib.sha1()
 
-   # open file for reading in binary mode
-   with open(filename,'rb') as file:
+    # open file for reading in binary mode
+    with open(filename, 'rb') as file:
 
-       # loop till the end of the file
-       chunk = 0
-       while chunk != b'':
-           # read only 1024 bytes at a time
-           chunk = file.read(1024)
-           h.update(chunk)
+        # loop till the end of the file
+        chunk = 0
+        while chunk != b'':
+            # read only 1024 bytes at a time
+            chunk = file.read(1024)
+            h.update(chunk)
 
-   # return the hex representation of digest
-   return str(h.hexdigest())
+    # return the hex representation of digest
+    return str(h.hexdigest())
 
 
 logger = logging.getLogger(__name__)
+
 
 def strategy1(args):
     logger.info("Getting the number of pages for the input file")
@@ -46,11 +48,12 @@ def strategy1(args):
         try:
             tables = pickle.loads(open(filename, "rb").read())
         except:
-            tables = camelot.read_pdf(args.input, flavor='stream', pages=str(i+1))
+            tables = camelot.read_pdf(
+                args.input, flavor='stream', pages=str(i+1))
             if not os.path.exists(os.path.dirname(filename)):
                 try:
                     os.makedirs(os.path.dirname(filename))
-                except OSError as exc: # Guard against race condition
+                except OSError as exc:  # Guard against race condition
                     raise exc
             open(filename, "wb").write(pickle.dumps(tables))
         for table in tables:
@@ -58,7 +61,7 @@ def strategy1(args):
             columnstosum = [args.scorecolumn]
             if args.sum:
                 columnstosum = args.sum
-            
+
             for index, row in df.iterrows():
                 if index < args.skiplines:
                     continue
@@ -69,7 +72,8 @@ def strategy1(args):
                     if column < 0:
                         column = len(df.columns)+args.scorecolumn
                     asd: str = row[column]
-                    asd = asd.strip('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ')
+                    asd = asd.strip(
+                        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ')
                     try:
                         score += float(asd)
                     except:
@@ -83,10 +87,14 @@ def main():
     parser.add_argument("-i", "--input", help="Input file", required=True)
     parser.add_argument('--debug', action=argparse.BooleanOptionalAction, dest="debug",
                         help='enable debug mode (default: false)')
-    parser.add_argument("--skiplines", help="Skip first x lines", default=0, type=int)
-    parser.add_argument("-n", "--namecolumn", help="The column that contains the name", default=0, type=int)
-    parser.add_argument("-s", "--scorecolumn", help="The column that contains the score", default=1, type=int)
-    parser.add_argument("--sum", help="The columns that need to be summed", default=[], type=int, nargs='+')
+    parser.add_argument(
+        "--skiplines", help="Skip first x lines", default=0, type=int)
+    parser.add_argument(
+        "-n", "--namecolumn", help="The column that contains the name", default=0, type=int)
+    parser.add_argument("-s", "--scorecolumn",
+                        help="The column that contains the score", default=1, type=int)
+    parser.add_argument(
+        "--sum", help="The columns that need to be summed", default=[], type=int, nargs='+')
     parser.add_argument("-o", "--output", help="Output file", required=True)
     args = parser.parse_args()
     if args.debug:
@@ -97,6 +105,7 @@ def main():
 
     with open(args.output, 'w') as outfile:
         json.dump(data, outfile, indent=4, sort_keys=True)
+
 
 if __name__ == "__main__":
     with tqdm_logging_redirect():
