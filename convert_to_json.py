@@ -38,6 +38,10 @@ logger = logging.getLogger(__name__)
 def strategy1(args):
     logger.info("Getting the number of pages for the input file")
     pdf_reader = PyPDF2.PdfFileReader(args.input)
+    if args.password:
+        pdf_reader.decrypt(password=args.password)
+    if not args.output:
+        args.output = args.input.replace('.pdf', '.json')
     pages = pdf_reader.getNumPages()
     logger.debug("Number of pages: {}".format(pages))
 
@@ -67,6 +71,10 @@ def strategy1(args):
                     continue
                 if index == args.skiplines:
                     logger.debug(row)
+
+                if args.conditionalcolumntext:
+                    if row[args.conditionalcolumn] != args.conditionalcolumntext:
+                        continue
                 score = 0
                 for column in columnstosum:
                     if column < 0:
@@ -95,7 +103,12 @@ def main():
                         help="The column that contains the score", default=1, type=int)
     parser.add_argument(
         "--sum", help="The columns that need to be summed", default=[], type=int, nargs='+')
-    parser.add_argument("-o", "--output", help="Output file", required=True)
+    parser.add_argument(
+        "--conditionalcolumntext", help="The conditional column must be this text for the row to be used", type=str)
+    parser.add_argument(
+        "--conditionalcolumn", help="The conditional column number", type=int)
+    parser.add_argument("-o", "--output", help="Output file", required=False)
+    parser.add_argument("-p", "--password", help="Password for the PDF")
     args = parser.parse_args()
     if args.debug:
         logger.setLevel(logging.DEBUG)
